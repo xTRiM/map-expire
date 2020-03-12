@@ -1,34 +1,34 @@
-'use strict';
-
 const EventEmitter = require('events');
 
 class Entity {
 	constructor(data, duration){
 		this.data = data
-		this.expire = duration ? (new Date()).getTime() + duration : false
+		this.expire = duration && (Date.now() + duration)
 	}
 
 	get expired(){
-		return this.expire ? this.expire < (new Date()).getTime() : false;
+		return this.expire ? (this.expire < Date.now()) : false;
 	}
 }
 
 class Cache extends Map {
-	constructor(values, capacity = 100){
-		super(values)
+	constructor(values, capacity = 100, duration){
+		super()
 		this.events = new EventEmitter()
-		this.capacity = capacity
+        this.capacity = capacity
+        this.duration = duration
+        if(values) values.forEach(item => this.set(...item))
 	}
 	set(key, value, duration){
-		var entity = new Entity(value, duration)
+		var entity = new Entity(value, duration === undefined ? this.duration : duration)
 		super.set(key, entity)
 		this.events.emit('save', key, value, duration)
 		this.clean()
 	}
 
 	get(key){
-		var entity = super.get(key);
-		return entity === undefined || entity.expired ? undefined : entity.data;
+        const entity = super.get(key);
+        return entity ? (entity.expired ? undefined : entity.data) : undefined
 	}
 
 	clean(){
@@ -48,4 +48,4 @@ class Cache extends Map {
 	}
 }
 
-module.exports = new Cache();
+module.exports = Cache;
