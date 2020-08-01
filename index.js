@@ -23,7 +23,7 @@ class Cache extends Map {
 
 	get(key){
 		var entity = this.get_entity(key);
-		return entity === undefined || entity.data;
+		return entity === undefined || entity.expired ? undefined : entity.data;
 	}
 	
 	set_entity(key, entity){
